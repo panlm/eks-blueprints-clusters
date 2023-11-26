@@ -60,7 +60,7 @@ locals {
     #enable_fargate_fluentbit                     = true
     # enable_aws_for_fluentbit = true
     #enable_aws_node_termination_handler          = true
-    enable_karpenter = true
+    # enable_karpenter = true
     #enable_velero                                = true
     #enable_aws_gateway_api_controller            = true
     #enable_aws_secrets_store_csi_driver_provider = true
@@ -217,9 +217,9 @@ module "eks" {
       node_group_name = local.node_group_name
       instance_types  = ["m5.large"]
 
-      min_size     = 2
-      max_size     = 10
-      desired_size = 4
+      min_size     = 1
+      max_size     = 5
+      desired_size = 3
       subnet_ids   = data.aws_subnets.private.ids
     }
   }
@@ -518,12 +518,12 @@ data "aws_iam_role" "eks_admin_role_name" {
 #   secret_id = data.aws_secretsmanager_secret.workload_repo_secret.id
 # }
 
-# resource "kubernetes_namespace" "argocd" {
-#   depends_on = [module.eks_blueprints_addons]
-#   metadata {
-#     name = "argocd"
-#   }
-# }
+resource "kubernetes_namespace" "argocd" {
+  depends_on = [module.eks_blueprints_addons]
+  metadata {
+    name = "argocd"
+  }
+}
 
 # resource "kubernetes_secret" "git_secrets" {
 
@@ -601,10 +601,10 @@ module "eks_blueprints_addons" {
   eks_addons = {
 
     # Remove for workshop as ebs-csi is long to provision (15mn)
-    aws-ebs-csi-driver = {
-      most_recent              = true
-      service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
-    }
+    # aws-ebs-csi-driver = {
+    #   most_recent              = true
+    #   service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
+    # }
     coredns = {
       most_recent = true
     }
@@ -631,7 +631,7 @@ module "eks_blueprints_addons" {
 
   # EKS Blueprints Addons
   enable_cert_manager = try(local.aws_addons.enable_cert_manager, false)
-  # enable_aws_ebs_csi_resources  = try(local.aws_addons.enable_aws_ebs_csi_resources, false)
+  #enable_aws_ebs_csi_resources  = try(local.aws_addons.enable_aws_ebs_csi_resources, false)
   enable_aws_efs_csi_driver           = try(local.aws_addons.enable_aws_efs_csi_driver, false)
   enable_aws_fsx_csi_driver           = try(local.aws_addons.enable_aws_fsx_csi_driver, false)
   enable_aws_cloudwatch_metrics       = try(local.aws_addons.enable_aws_cloudwatch_metrics, false)
@@ -696,3 +696,4 @@ module "vpc_cni_irsa" {
 
   tags = local.tags
 }
+
