@@ -47,7 +47,7 @@ locals {
   #---------------------------------------------------------------
 
   aws_addons = {
-    enable_cert_manager          = true
+    enable_cert_manager          = false
     enable_aws_ebs_csi_resources = true # generate gp2 and gp3 storage classes for ebs-csi
     #enable_aws_efs_csi_driver                    = true
     #enable_aws_fsx_csi_driver                    = true
@@ -60,7 +60,7 @@ locals {
     #enable_fargate_fluentbit                     = true
     # enable_aws_for_fluentbit = true
     #enable_aws_node_termination_handler          = true
-    enable_karpenter = true
+    enable_karpenter = false
     #enable_velero                                = true
     #enable_aws_gateway_api_controller            = true
     #enable_aws_secrets_store_csi_driver_provider = true
