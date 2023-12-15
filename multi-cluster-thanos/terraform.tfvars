@@ -1,8 +1,9 @@
 # You should update the below variables
 
 aws_region          = "us-east-2"
-environment_name     = "eks1127"
-hosted_zone_name    = "eks1127.aws.panlm.xyz" # your Existing Hosted Zone
+environment_name    = "thanos"
+cluster_version     = "1.27"
+hosted_zone_name    = "eks1215.aws.panlm.xyz" # your Existing Hosted Zone
 eks_admin_role_name = "panlm" # Additional role admin in the cluster (usually the role I use in the AWS console)
 
 #gitops_addons_org      = "git@github.com:aws-samples"

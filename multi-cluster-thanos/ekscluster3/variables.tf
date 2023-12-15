@@ -10,6 +10,12 @@ variable "environment_name" {
   default     = "eks-blueprint"
 }
 
+variable "cluster_version" {
+  description = "eks version"
+  type        = string
+  default     = "1.26"
+}
+
 variable "ingress_type" {
   type        = string
   description = "Type of ingress to uses (alb | nginx | ...). this parameter will be sent to arocd via gitops bridge"

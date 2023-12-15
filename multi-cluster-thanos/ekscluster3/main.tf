@@ -31,7 +31,7 @@ module "eks_cluster" {
 
   aws_region      = var.aws_region
   service_name    = basename(path.cwd)
-  cluster_version = "1.26"
+  cluster_version = var.cluster_version
 
   argocd_route53_weight      = "0" # We control with theses parameters how we send traffic to the workloads in the new cluster
   route53_weight             = "0"
