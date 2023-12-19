@@ -40,7 +40,7 @@ locals {
   tag_val_public_subnet  = "${local.environment}-public-"
   tag_val_private_subnet = "${local.environment}-private-"
 
-  node_group_name = "managed-ondemand"
+  node_group_name = "mng"
 
   #---------------------------------------------------------------
   # ARGOCD ADD-ON APPLICATION
@@ -214,7 +214,7 @@ module "eks" {
   create_node_security_group = false
   eks_managed_node_groups = {
     initial = {
-      node_group_name = local.node_group_name
+      name = "${local.name}-${local.node_group_name}"
       instance_types  = ["r5.large"]
 
       min_size     = 2
