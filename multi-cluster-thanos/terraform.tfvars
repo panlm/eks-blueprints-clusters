@@ -3,13 +3,13 @@
 aws_region          = "us-east-2"
 environment_name    = "thanos"
 cluster_version     = "1.27"
-hosted_zone_name    = "eks1215.aws.panlm.xyz" # your Existing Hosted Zone
+hosted_zone_name    = "eks1217.aws.panlm.xyz" # your Existing Hosted Zone
 eks_admin_role_name = "panlm" # Additional role admin in the cluster (usually the role I use in the AWS console)
 
-#gitops_addons_org      = "git@github.com:aws-samples"
-#gitops_addons_repo     = "eks-blueprints-add-ons"
-#gitops_addons_path     = "argocd/bootstrap/control-plane/addons"
-#gitops_addons_basepath = "argocd/"
+gitops_addons_org      = "https://github.com/aws-samples"
+gitops_addons_repo     = "eks-blueprints-add-ons"
+gitops_addons_path     = "argocd/bootstrap/control-plane/addons"
+gitops_addons_basepath = "argocd/"
 
 # EKS Blueprint Workloads ArgoCD App of App repository
 #gitops_workloads_org      = "git@github.com:aws-samples"
