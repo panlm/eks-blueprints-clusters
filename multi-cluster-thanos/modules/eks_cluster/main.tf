@@ -71,7 +71,7 @@ locals {
     #enable_cluster_proportional_autoscaler       = true
     #enable_gatekeeper                            = true
     #enable_gpu_operator                          = true
-    enable_ingress_nginx = true
+    enable_ingress_nginx = false
     # enable_kyverno       = true
     #enable_kube_prometheus_stack                 = true
     enable_metrics_server = true
