@@ -26,14 +26,14 @@ provider "helm" {
   }
 }
 
-resource "helm_release" "metrics-server" {
-  name       = "metrics-server"
-  repository = "https://kubernetes-sigs.github.io/metrics-server/"
-  chart      = "metrics-server"
-  namespace   = "kube-system"
+# resource "helm_release" "metrics-server" {
+#   name       = "metrics-server"
+#   repository = "https://kubernetes-sigs.github.io/metrics-server/"
+#   chart      = "metrics-server"
+#   namespace   = "kube-system"
 
-  values = []
-}
+#   values = []
+# }
 
 module "eks_cluster" {
   source = "../modules/eks_cluster"
@@ -53,5 +53,16 @@ module "eks_cluster" {
   aws_secret_manager_git_private_ssh_key_name = var.aws_secret_manager_git_private_ssh_key_name
   argocd_secret_manager_name_suffix           = var.argocd_secret_manager_name_suffix
   ingress_type                                = var.ingress_type
+
+  gitops_addons_org      = var.gitops_addons_org
+  gitops_addons_repo     = var.gitops_addons_repo
+  gitops_addons_basepath = var.gitops_addons_basepath
+  gitops_addons_path     = var.gitops_addons_path
+  gitops_addons_revision = var.gitops_addons_revision
+
+  # gitops_workloads_org      = var.gitops_workloads_org
+  # gitops_workloads_repo     = var.gitops_workloads_repo
+  # gitops_workloads_revision = var.gitops_workloads_revision
+  # gitops_workloads_path     = var.gitops_workloads_path
 
 }

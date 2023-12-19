@@ -40,31 +40,31 @@ variable "argocd_secret_manager_name_suffix" {
   default     = "argocd-admin-secret"
 }
 
-# variable "gitops_addons_org" {
-#   type        = string
-#   description = "Git repository org/user contains for addons"
-#   default     = "git@github.com:aws-samples"
-# }
-# variable "gitops_addons_repo" {
-#   type        = string
-#   description = "Git repository contains for addons"
-#   default     = "eks-blueprints-add-ons"
-# }
-# variable "gitops_addons_basepath" {
-#   type        = string
-#   description = "Git repository base path for addons"
-#   default     = "argocd/"
-# }
-# variable "gitops_addons_path" {
-#   type        = string
-#   description = "Git repository path for addons"
-#   default     = "argocd/bootstrap/control-plane/addons"
-# }
-# variable "gitops_addons_revision" {
-#   type        = string
-#   description = "Git repository revision/branch/ref for addons"
-#   default     = "HEAD"
-# }
+variable "gitops_addons_org" {
+  type        = string
+  description = "Git repository org/user contains for addons"
+  default     = "git@github.com:aws-samples"
+}
+variable "gitops_addons_repo" {
+  type        = string
+  description = "Git repository contains for addons"
+  default     = "eks-blueprints-add-ons"
+}
+variable "gitops_addons_basepath" {
+  type        = string
+  description = "Git repository base path for addons"
+  default     = "argocd/"
+}
+variable "gitops_addons_path" {
+  type        = string
+  description = "Git repository path for addons"
+  default     = "argocd/bootstrap/control-plane/addons"
+}
+variable "gitops_addons_revision" {
+  type        = string
+  description = "Git repository revision/branch/ref for addons"
+  default     = "HEAD"
+}
 
 # variable "gitops_workloads_org" {
 #   type        = string

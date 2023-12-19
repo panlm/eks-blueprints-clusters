@@ -24,10 +24,10 @@ locals {
   # gitops_workloads_path     = var.gitops_workloads_path
   # gitops_workloads_revision = var.gitops_workloads_revision
 
-  # gitops_addons_url      = "${var.gitops_addons_org}/${var.gitops_addons_repo}"
-  # gitops_addons_basepath = var.gitops_addons_basepath
-  # gitops_addons_path     = var.gitops_addons_path
-  # gitops_addons_revision = var.gitops_addons_revision
+  gitops_addons_url      = "${var.gitops_addons_org}/${var.gitops_addons_repo}"
+  gitops_addons_basepath = var.gitops_addons_basepath
+  gitops_addons_path     = var.gitops_addons_path
+  gitops_addons_revision = var.gitops_addons_revision
 
   # Route 53 Ingress Weights
   argocd_route53_weight      = var.argocd_route53_weight
@@ -104,10 +104,10 @@ locals {
       # gitops_workloads_path     = local.gitops_workloads_path
       # gitops_workloads_revision = local.gitops_workloads_revision
 
-      # addons_repo_url      = local.gitops_addons_url
-      # addons_repo_basepath = local.gitops_addons_basepath
-      # addons_repo_path     = local.gitops_addons_path
-      # addons_repo_revision = local.gitops_addons_revision
+      addons_repo_url      = local.gitops_addons_url
+      addons_repo_basepath = local.gitops_addons_basepath
+      addons_repo_path     = local.gitops_addons_path
+      addons_repo_revision = local.gitops_addons_revision
     },
     {
       eks_cluster_domain         = local.eks_cluster_domain
@@ -125,10 +125,10 @@ locals {
   # Manifests for bootstraping the cluster for addons & workloads
   #---------------------------------------------------------------
 
-  # argocd_apps = {
-  #   addons    = file("${path.module}/../../bootstrap/addons.yaml")
-  #   workloads = file("${path.module}/../../bootstrap/workloads.yaml")
-  # }
+  argocd_apps = {
+    addons    = file("${path.module}/../../bootstrap/addons.yaml")
+    # workloads = file("${path.module}/../../bootstrap/workloads.yaml")
+  }
 
 
   tags = {
@@ -518,71 +518,81 @@ data "aws_iam_role" "eks_admin_role_name" {
 #   secret_id = data.aws_secretsmanager_secret.workload_repo_secret.id
 # }
 
-# resource "kubernetes_namespace" "argocd" {
-#   depends_on = [module.eks_blueprints_addons]
-#   metadata {
-#     name = "argocd"
-#   }
-# }
+resource "kubernetes_namespace" "argocd" {
+  depends_on = [module.eks_blueprints_addons]
+  metadata {
+    name = "argocd"
+  }
+}
 
-# resource "kubernetes_secret" "git_secrets" {
+resource "kubernetes_secret" "git_secrets" {
 
-#   for_each = {
-#     git-addons = {
-#       type = "git"
-#       url  = local.gitops_addons_url
-#       # comment if you want to uses public repo wigh syntax "https://github.com/xxx" syntax, uncomment when using syntax "git@github.com:xxx"
-#       sshPrivateKey = data.aws_secretsmanager_secret_version.workload_repo_secret.secret_string
-#     }
-#     git-workloads = {
-#       type = "git"
-#       url  = local.gitops_workloads_url
-#       # comment if you want to uses public repo wigh syntax "https://github.com/xxx" syntax, uncomment when using syntax "git@github.com:xxx"
-#       sshPrivateKey = data.aws_secretsmanager_secret_version.workload_repo_secret.secret_string
-#     }
-#   }
-#   metadata {
-#     name      = each.key
-#     namespace = kubernetes_namespace.argocd.metadata[0].name
-#     labels = {
-#       "argocd.argoproj.io/secret-type" = "repo-creds"
-#     }
-#   }
-#   data = each.value
-# }
+  for_each = {
+    git-addons = {
+      type = "git"
+      url  = local.gitops_addons_url
+      # comment if you want to uses public repo wigh syntax "https://github.com/xxx" syntax, uncomment when using syntax "git@github.com:xxx"
+      # sshPrivateKey = data.aws_secretsmanager_secret_version.workload_repo_secret.secret_string
+    }
+    # git-workloads = {
+    #   type = "git"
+    #   url  = local.gitops_workloads_url
+    #   # comment if you want to uses public repo wigh syntax "https://github.com/xxx" syntax, uncomment when using syntax "git@github.com:xxx"
+    #   sshPrivateKey = data.aws_secretsmanager_secret_version.workload_repo_secret.secret_string
+    # }
+  }
+  metadata {
+    name      = each.key
+    namespace = kubernetes_namespace.argocd.metadata[0].name
+    labels = {
+      "argocd.argoproj.io/secret-type" = "repo-creds"
+    }
+  }
+  data = each.value
+}
 
 ################################################################################
 # GitOps Bridge: Bootstrap
 ################################################################################
-# module "gitops_bridge_bootstrap" {
-#   source = "github.com/gitops-bridge-dev/gitops-bridge-argocd-bootstrap-terraform?ref=v2.0.0"
+module "gitops_bridge_bootstrap" {
+  source = "github.com/gitops-bridge-dev/gitops-bridge-argocd-bootstrap-terraform?ref=v2.0.0"
 
-#   cluster = {
-#     cluster_name = module.eks.cluster_name
-#     environment  = local.environment
-#     metadata     = local.addons_metadata
-#     addons       = local.addons
-#   }
-#   apps = local.argocd_apps
+  cluster = {
+    cluster_name = module.eks.cluster_name
+    environment  = local.environment
+    metadata     = local.addons_metadata
+    addons       = local.addons
+  }
+  apps = local.argocd_apps
 
-#   argocd = {
-#     create_namespace = false
-#     set = [
-#       {
-#         name  = "server.service.type"
-#         value = "LoadBalancer"
-#       }
-#     ]
-#     set_sensitive = [
-#       {
-#         name  = "configs.secret.argocdServerAdminPassword"
-#         value = bcrypt(data.aws_secretsmanager_secret_version.admin_password_version.secret_string)
-#       }
-#     ]
-#   }
+  argocd = {
+    create_namespace = false
+    set = [
+      {
+        name  = "server.service.type"
+        value = "LoadBalancer"
+      },
+      {
+        name      = "server.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-scheme"
+        value     = "internet-facing"
+        type      = "string"
+      },
+      {
+        name      = "server.service.annotations.service\\.beta\\.kubernetes\\.io/aws-load-balancer-type"
+        value     = "external"
+        type      = "string"
+      }
+    ]
+    set_sensitive = [
+      {
+        name  = "configs.secret.argocdServerAdminPassword"
+        value = bcrypt(data.aws_secretsmanager_secret_version.admin_password_version.secret_string)
+      }
+    ]
+  }
 
-#   depends_on = [kubernetes_secret.git_secrets]
-# }
+  depends_on = [kubernetes_secret.git_secrets]
+}
 
 ################################################################################
 # EKS Blueprints Addons
