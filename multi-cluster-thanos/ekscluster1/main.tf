@@ -26,6 +26,24 @@ provider "helm" {
   }
 }
 
+resource "helm_release" "prometheus" {
+  name       = "${module.eks_cluster.eks_cluster_id}-prometheus"
+  repository = "https://prometheus-community.github.io/helm-charts"
+  chart      = "kube-prometheus-stack"
+  namespace  = "${kubernetes_namespace.ns["monitoring"].metadata[0].name}"
+
+  values = [
+    # file("../../../thanos-example/POC/prometheus/values-ekscluster1-1.yaml"),
+    # file("../../../thanos-example/POC/prometheus/values-ekscluster1-2.yaml")
+    file("values-ekscluster1-1.yaml"),
+    file("values-ekscluster1-2.yaml")
+  ]
+  depends_on = [kubernetes_service_account.prometheus_sa]
+}
+
+# resource "helm_release" "thanos" {
+# }
+
 module "eks_cluster" {
   source = "../modules/eks_cluster"
 
@@ -57,3 +75,102 @@ module "eks_cluster" {
   # gitops_workloads_path     = var.gitops_workloads_path
 
 }
+
+resource "kubernetes_namespace" "ns" {
+  # for_each = {
+  #   ns1 = "thanos"
+  #   ns2 = "monitoring"
+  # }
+  for_each = toset( ["thanos", "monitoring"] )
+  metadata {
+    name = each.key
+  }
+}
+
+# policy for s3 admin 
+module "s3_admin_policy" {
+  source = "terraform-aws-modules/iam/aws//modules/iam-policy"
+
+  name        = "s3-admin-policy"
+  path        = "/"
+  description = "access s3 from prometheus sidecar"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:*",
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+
+}
+
+# prometheus service account: prometheus-sa
+module "prometheus_sa_irsa" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+
+  role_name_prefix = "${module.eks_cluster.eks_cluster_id}-prometheus-sa-"
+  role_policy_arns = {
+    policy = module.s3_admin_policy.arn
+  }
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks_cluster.eks_cluster_oidc_arn
+      namespace_service_accounts = ["monitoring:prometheus-sa"]
+    }
+  }
+  tags = module.eks_cluster.eks_cluster_local_tags
+  depends_on = [kubernetes_namespace.ns]
+}
+
+resource "kubernetes_service_account" "prometheus_sa" {
+  metadata {
+    name = "prometheus-sa"
+    namespace = "${kubernetes_namespace.ns["monitoring"].metadata[0].name}"
+    annotations = {
+      "eks.amazonaws.com/role-arn" = "${module.prometheus_sa_irsa.iam_role_arn}"
+    }
+  }
+  depends_on = [module.prometheus_sa_irsa]
+}
+
+
+
+# thanos service account: thanos-store-sa / thanos-receive-sa
+module "thanos_sa_irsa" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  for_each = toset( ["thanos-store-sa", "thanos-receive-sa"] )
+
+  role_name_prefix = "${module.eks_cluster.eks_cluster_id}-${each.key}-"
+  role_policy_arns = {
+    policy = module.s3_admin_policy.arn
+  }
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks_cluster.eks_cluster_oidc_arn
+      namespace_service_accounts = ["thanos:${each.key}"]
+    }
+  }
+  tags = module.eks_cluster.eks_cluster_local_tags
+  depends_on = [kubernetes_namespace.ns]
+}
+
+resource "kubernetes_service_account" "thanos_sa" {
+  for_each = toset( ["thanos-store-sa", "thanos-receive-sa"] )
+
+  metadata {
+    name = "${each.key}-sa"
+    namespace = "${kubernetes_namespace.ns["thanos"].metadata[0].name}"
+    annotations = {
+      "eks.amazonaws.com/role-arn" = "${module.thanos_sa_irsa[each.key].iam_role_arn}"
+    }
+  }
+  depends_on = [module.thanos_sa_irsa]
+}
+
+

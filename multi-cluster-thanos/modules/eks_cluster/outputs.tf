@@ -3,6 +3,16 @@ output "eks_cluster_id" {
   value       = module.eks.cluster_name
 }
 
+output "eks_cluster_oidc_arn" {
+  description = "The oidc arn of the EKS cluster."
+  value       = module.eks.oidc_provider_arn
+}
+
+output "eks_cluster_local_tags" {
+  description = "The tags of the EKS cluster."
+  value       = local.tags
+}
+
 output "configure_kubectl" {
   description = "Configure kubectl: make sure you're logged in with the correct AWS profile and run the following command to update your kubeconfig"
   value       = "aws eks --region ${var.aws_region} update-kubeconfig --name ${module.eks.cluster_name} --alias ${module.eks.cluster_name}"
