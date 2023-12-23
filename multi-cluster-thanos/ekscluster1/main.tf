@@ -26,24 +26,42 @@ provider "helm" {
   }
 }
 
+### 
+### install prometheus operator with helm
+###
 resource "helm_release" "prometheus" {
+  # disable this resource if files does not exist
+  count = fileexists("${path.cwd}/../../../thanos-example/POC/prometheus/values-ekscluster1-1.yaml") ? 1 : 0
+
   name       = "${module.eks_cluster.eks_cluster_id}-prometheus"
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-prometheus-stack"
   namespace  = "${kubernetes_namespace.ns["monitoring"].metadata[0].name}"
 
-  values = [
-    # file("../../../thanos-example/POC/prometheus/values-ekscluster1-1.yaml"),
-    # file("../../../thanos-example/POC/prometheus/values-ekscluster1-2.yaml")
-    file("values-ekscluster1-1.yaml"),
-    file("values-ekscluster1-2.yaml")
+  values = fileexists("${path.cwd}/../../../thanos-example/POC/prometheus/values-ekscluster1-1.yaml") ? [
+    file("../../../thanos-example/POC/prometheus/values-ekscluster1-1.yaml"),
+    file("../../../thanos-example/POC/prometheus/values-ekscluster1-2.yaml")
+    # file("values-ekscluster1-1.yaml"),
+    # file("values-ekscluster1-2.yaml")
+  ] : []
+  depends_on = [
+    kubernetes_service_account.prometheus_sa,
+    kubernetes_secret.prometheus_secret
   ]
-  depends_on = [kubernetes_service_account.prometheus_sa]
 }
 
+### 
+### install prometheus operator with helm
+###
 # resource "helm_release" "thanos" {
+#   count = 0
+#   depends_on = [
+#     kubernetes_service_account.thanos_sa,
+#     kubernetes_secret.thanos_secret
+#   ]
 # }
 
+# create eks cluster
 module "eks_cluster" {
   source = "../modules/eks_cluster"
 
@@ -76,6 +94,7 @@ module "eks_cluster" {
 
 }
 
+### create namespace
 resource "kubernetes_namespace" "ns" {
   # for_each = {
   #   ns1 = "thanos"
@@ -107,10 +126,9 @@ module "s3_admin_policy" {
       }
     ]
   })
-
 }
 
-# prometheus service account: prometheus-sa
+# create role for service account: prometheus-sa
 module "prometheus_sa_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
 
@@ -121,13 +139,13 @@ module "prometheus_sa_irsa" {
   oidc_providers = {
     main = {
       provider_arn               = module.eks_cluster.eks_cluster_oidc_arn
-      namespace_service_accounts = ["monitoring:prometheus-sa"]
+      namespace_service_accounts = ["${kubernetes_namespace.ns["monitoring"].metadata[0].name}:prometheus-sa"]
     }
   }
   tags = module.eks_cluster.eks_cluster_local_tags
-  depends_on = [kubernetes_namespace.ns]
 }
 
+# create service account
 resource "kubernetes_service_account" "prometheus_sa" {
   metadata {
     name = "prometheus-sa"
@@ -136,12 +154,9 @@ resource "kubernetes_service_account" "prometheus_sa" {
       "eks.amazonaws.com/role-arn" = "${module.prometheus_sa_irsa.iam_role_arn}"
     }
   }
-  depends_on = [module.prometheus_sa_irsa]
 }
 
-
-
-# thanos service account: thanos-store-sa / thanos-receive-sa
+# create role for service account: thanos-store-sa / thanos-receive-sa
 module "thanos_sa_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   for_each = toset( ["thanos-store-sa", "thanos-receive-sa"] )
@@ -153,24 +168,37 @@ module "thanos_sa_irsa" {
   oidc_providers = {
     main = {
       provider_arn               = module.eks_cluster.eks_cluster_oidc_arn
-      namespace_service_accounts = ["thanos:${each.key}"]
+      namespace_service_accounts = ["${kubernetes_namespace.ns["thanos"].metadata[0].name}:${each.key}"]
     }
   }
   tags = module.eks_cluster.eks_cluster_local_tags
-  depends_on = [kubernetes_namespace.ns]
 }
 
+# create servcie account
 resource "kubernetes_service_account" "thanos_sa" {
   for_each = toset( ["thanos-store-sa", "thanos-receive-sa"] )
 
   metadata {
-    name = "${each.key}-sa"
+    name = "${each.key}"
     namespace = "${kubernetes_namespace.ns["thanos"].metadata[0].name}"
     annotations = {
       "eks.amazonaws.com/role-arn" = "${module.thanos_sa_irsa[each.key].iam_role_arn}"
     }
   }
-  depends_on = [module.thanos_sa_irsa]
+}
+
+# create secret key for s3 config
+resource "kubernetes_secret" "prometheus_secret" {
+  count = fileexists("../../../thanos-example/POC/s3-config/thanos-s3-config-${module.eks_cluster.eks_cluster_id}.yaml") ? 1 : 0
+
+  metadata {
+    name = "thanos-s3-config-${module.eks_cluster.eks_cluster_id}"
+    namespace = "${kubernetes_namespace.ns["monitoring"].metadata[0].name}"
+  }
+
+  data = fileexists("../../../thanos-example/POC/s3-config/thanos-s3-config-${module.eks_cluster.eks_cluster_id}.yaml") ? {
+    "thanos-s3-config-${module.eks_cluster.eks_cluster_id}" = "${file("../../../thanos-example/POC/s3-config/thanos-s3-config-${module.eks_cluster.eks_cluster_id}.yaml")}"
+  } : {}
 }
 
 
