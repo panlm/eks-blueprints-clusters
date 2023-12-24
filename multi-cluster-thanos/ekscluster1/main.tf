@@ -67,4 +67,5 @@ module "eks_prometheus" {
   cluster_oidc = module.eks_cluster.eks_cluster_oidc_arn
   cluster_endpoint = module.eks_cluster.eks_cluster_endpoint
   cluster_ca_data = module.eks_cluster.cluster_certificate_authority_data
+  blueprints_addons = module.eks_cluster.eks_blueprints_addons
 }
