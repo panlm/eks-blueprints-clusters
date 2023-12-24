@@ -43,6 +43,11 @@ output "cluster_certificate_authority_data" {
   value       = module.eks.cluster_certificate_authority_data
 }
 
+output "eks_blueprints_addons" {
+  description = "eks_blueprints_addons"
+  value       = module.eks_blueprints_addons
+}
+
 # output "access_argocd" {
 #   description = "ArgoCD Access"
 #   value       = <<-EOT

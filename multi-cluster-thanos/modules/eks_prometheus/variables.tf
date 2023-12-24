@@ -22,3 +22,8 @@ variable "cluster_ca_data" {
   default     = ""
 }
 
+variable "blueprints_addons" {
+  description = "eks cluster ca data"
+  type        = any
+  default     = []
+}

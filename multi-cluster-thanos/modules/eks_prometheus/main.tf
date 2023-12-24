@@ -17,17 +17,18 @@ locals {
 # }
 
 
-# provider "kubernetes" {
-#   host                   = data.terraform_remote_state.cluster["ekscluster1"].eks_cluster_endpoint
-#   cluster_ca_certificate = base64decode(data.terraform_remote_state.cluster["ekscluster1"].cluster_certificate_authority_data)
+provider "kubernetes" {
+  host                   = local.cluster_endpoint
+  cluster_ca_certificate = base64decode(local.cluster_ca_data)
 
-#   exec {
-#     api_version = "client.authentication.k8s.io/v1beta1"
-#     command     = "aws"
-#     args        = ["eks", "get-token", "--cluster-name", data.terraform_remote_state.cluster["ekscluster1"].outputs.eks_cluster_id]
-#   }
-#   alias = "ekscluster1"
-# }
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args        = ["eks", "get-token", "--cluster-name", local.cluster_name]
+  }
+  alias = "ekscluster1"
+}
+
 # provider "kubernetes" {
 #   host                   = data.terraform_remote_state.cluster["ekscluster2"].eks_cluster_endpoint
 #   cluster_ca_certificate = base64decode(data.terraform_remote_state.cluster["ekscluster2"].cluster_certificate_authority_data)
@@ -92,7 +93,8 @@ resource "helm_release" "prometheus" {
   ] : []
   depends_on = [
     kubernetes_service_account.prometheus_sa,
-    kubernetes_secret.prometheus_secret
+    kubernetes_secret.prometheus_secret,
+    var.blueprints_addons
   ]
 }
 
