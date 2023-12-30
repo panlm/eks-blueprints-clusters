@@ -1,7 +1,7 @@
 # You should update the below variables
 
 aws_region          = "cn-northwest-1"
-environment_name    = "thanos"
+environment_name    = "zhy"
 cluster_version     = "1.27"
 hosted_zone_name    = "eks1217.aws.panlm.xyz" # your Existing Hosted Zone
 eks_admin_role_name = "panlm" # Additional role admin in the cluster (usually the role I use in the AWS console)
