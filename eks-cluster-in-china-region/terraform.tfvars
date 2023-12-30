@@ -3,7 +3,7 @@
 aws_region          = "cn-northwest-1"
 environment_name    = "zhy"
 cluster_version     = "1.27"
-hosted_zone_name    = "eks1217.aws.panlm.xyz" # your Existing Hosted Zone
+hosted_zone_name    = "eks1230.aws.panlm.xyz" # your Existing Hosted Zone
 eks_admin_role_name = "panlm" # Additional role admin in the cluster (usually the role I use in the AWS console)
 
 gitops_addons_org      = "https://github.com/aws-samples"
