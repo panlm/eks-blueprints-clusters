@@ -191,63 +191,17 @@ resource "kubernetes_service_account" "prometheus_sa" {
   }
 }
 
-# create role for service account: thanos-store-sa / thanos-receive-sa
-module "thanos_sa_irsa" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  for_each = toset( ["thanos-store-sa", "thanos-receive-sa"] )
-
-  role_name_prefix = "${local.cluster_name}-${each.key}-"
-  role_policy_arns = {
-    policy = module.s3_admin_policy.arn
-  }
-  oidc_providers = {
-    main = {
-      provider_arn               = "${local.cluster_oidc}"
-      namespace_service_accounts = ["${kubernetes_namespace.ns["thanos"].metadata[0].name}:${each.key}"]
-    }
-  }
-  # tags = module.eks_cluster.eks_cluster_local_tags
-}
-
-# create servcie account
-resource "kubernetes_service_account" "thanos_sa" {
-  for_each = toset( ["thanos-store-sa", "thanos-receive-sa"] )
-
-  metadata {
-    name = "${each.key}"
-    namespace = "thanos"
-    annotations = {
-      "eks.amazonaws.com/role-arn" = "${module.thanos_sa_irsa[each.key].iam_role_arn}"
-    }
-  }
-}
-
 # create secret key for s3 config
 resource "kubernetes_secret" "prometheus_secret" {
-  count = fileexists("../../../thanos-example/POC/s3-config/thanos-s3-config-${local.cluster_name}.yaml") ? 1 : 0
+  count = fileexists("${path.cwd}/../../../thanos-example/POC/s3-config/thanos-s3-config-${local.cluster_name}.yaml") ? 1 : 0
 
   metadata {
     name = "thanos-s3-config-${local.cluster_name}"
     namespace = "monitoring"
   }
 
-  data = fileexists("../../../thanos-example/POC/s3-config/thanos-s3-config-${local.cluster_name}.yaml") ? {
-    "thanos-s3-config-${local.cluster_name}" = "${file("../../../thanos-example/POC/s3-config/thanos-s3-config-${local.cluster_name}.yaml")}"
+  data = fileexists("${path.cwd}/../../../thanos-example/POC/s3-config/thanos-s3-config-${local.cluster_name}.yaml") ? {
+    "thanos-s3-config-${local.cluster_name}" = "${file("${path.cwd}/../../../thanos-example/POC/s3-config/thanos-s3-config-${local.cluster_name}.yaml")}"
   } : {}
 }
-
-# create secret key for s3 config
-resource "kubernetes_secret" "thanos_secret" {
-  count = fileexists("../../../thanos-example/POC/s3-config/thanos-s3-config-${local.cluster_name}.yaml") ? 1 : 0
-
-  metadata {
-    name = "thanos-s3-config-${local.cluster_name}"
-    namespace = "thanos"
-  }
-
-  data = fileexists("../../../thanos-example/POC/s3-config/thanos-s3-config-${local.cluster_name}.yaml") ? {
-    "thanos-s3-config-${local.cluster_name}" = "${file("../../../thanos-example/POC/s3-config/thanos-s3-config-${local.cluster_name}.yaml")}"
-  } : {}
-}
-
 
