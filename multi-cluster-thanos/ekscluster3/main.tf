@@ -61,6 +61,7 @@ module "eks_cluster" {
 # create prometheus
 module "eks_prometheus" {
   source = "../modules/eks_prometheus"
+  count = fileexists("${path.cwd}/../../../thanos-example/POC/s3-config/thanos-s3-config-${module.eks_cluster.eks_cluster_id}.yaml") ? 1 : 0
 
   cluster_name      = module.eks_cluster.eks_cluster_id
   cluster_oidc      = module.eks_cluster.eks_cluster_oidc_arn
