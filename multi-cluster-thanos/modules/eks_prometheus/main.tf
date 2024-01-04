@@ -169,7 +169,7 @@ module "prometheus_sa_irsa" {
   role_name_prefix = "${local.cluster_name}-prometheus-sa-"
   role_policy_arns = {
     policy = module.s3_admin_policy.arn
-    policy = module.amp_remote_write_policy.arn
+    additional = module.amp_remote_write_policy.arn
   }
   oidc_providers = {
     main = {
