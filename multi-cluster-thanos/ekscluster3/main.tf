@@ -57,3 +57,14 @@ module "eks_cluster" {
   # gitops_workloads_path     = var.gitops_workloads_path
 
 }
+
+# create prometheus
+module "eks_prometheus" {
+  source = "../modules/eks_prometheus"
+
+  cluster_name      = module.eks_cluster.eks_cluster_id
+  cluster_oidc      = module.eks_cluster.eks_cluster_oidc_arn
+  cluster_endpoint  = module.eks_cluster.eks_cluster_endpoint
+  cluster_ca_data   = module.eks_cluster.cluster_certificate_authority_data
+  blueprints_addons = module.eks_cluster.eks_blueprints_addons
+}
