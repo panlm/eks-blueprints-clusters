@@ -5,6 +5,7 @@ locals {
   cluster_endpoint = var.cluster_endpoint
   cluster_ca_data = var.cluster_ca_data
   service_account = "prometheus-sa"
+  namespace_name = "monitoring"
 }
 
 # resource "helm_release" "nginx" {
@@ -23,7 +24,7 @@ resource "helm_release" "prometheus" {
   name       = "${local.cluster_name}-prometheus"
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-prometheus-stack"
-  namespace  = "${kubernetes_namespace.ns_monitoring}"
+  namespace  = "${local.namespace_name}"
 
   values = [
     file("${path.cwd}/../../../thanos-example/POC/prometheus/values-${local.cluster_name}-1.yaml"),
@@ -39,7 +40,7 @@ resource "helm_release" "prometheus" {
 ### create namespace
 resource "kubernetes_namespace" "ns_monitoring" {
   metadata {
-    name = "monitoring"
+    name = "${local.namespace_name}"
   }
 }
 
@@ -95,7 +96,7 @@ module "prometheus_sa_irsa" {
   oidc_providers = {
     main = {
       provider_arn               = "${local.cluster_oidc}"
-      namespace_service_accounts = ["${kubernetes_namespace.ns_monitoring}:${local.service_account}"]
+      namespace_service_accounts = ["${local.namespace_name}:${local.service_account}"]
     }
   }
   # tags = module.eks_cluster.eks_cluster_local_tags
@@ -105,7 +106,7 @@ module "prometheus_sa_irsa" {
 resource "kubernetes_service_account" "prometheus_sa" {
   metadata {
     name = "${local.service_account}"
-    namespace = "${kubernetes_namespace.ns_monitoring}"
+    namespace = "${local.namespace_name}"
     annotations = {
       "eks.amazonaws.com/role-arn" = "${module.prometheus_sa_irsa.iam_role_arn}"
     }
@@ -116,7 +117,7 @@ resource "kubernetes_service_account" "prometheus_sa" {
 resource "kubernetes_secret" "prometheus_secret" {
   metadata {
     name = "thanos-s3-config-${local.cluster_name}"
-    namespace = "${kubernetes_namespace.ns_monitoring}"
+    namespace = "${local.namespace_name}"
   }
 
   data = {

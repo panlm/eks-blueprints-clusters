@@ -2,12 +2,13 @@
 locals {
   cluster_name = var.cluster_name
   cluster_oidc = var.cluster_oidc
+  namespace_name = "thanos"
 }
 
 ### create namespace
 resource "kubernetes_namespace" "ns_thanos" {
   metadata {
-    name = "thanos"
+    name = "${local.namespace_name}"
   }
 }
 
@@ -43,9 +44,9 @@ module "thanos_sa_irsa" {
     main = {
       provider_arn               = "${local.cluster_oidc}"
       namespace_service_accounts = [
-        "${kubernetes_namespace.ns_thanos}:${each.key}-ekscluster1",
-        "${kubernetes_namespace.ns_thanos}:${each.key}-ekscluster2",
-        "${kubernetes_namespace.ns_thanos}:${each.key}-ekscluster3",
+        "${local.namespace_name}:${each.key}-ekscluster1",
+        "${local.namespace_name}:${each.key}-ekscluster2",
+        "${local.namespace_name}:${each.key}-ekscluster3",
       ]
     }
   }
@@ -58,7 +59,7 @@ resource "kubernetes_service_account" "thanos_store_sa" {
 
   metadata {
     name = "thanos-store-${each.key}"
-    namespace = "${kubernetes_namespace.ns_thanos}"
+    namespace = "${local.namespace_name}"
     annotations = {
       "eks.amazonaws.com/role-arn" = "${module.thanos_sa_irsa["thanos-store"].iam_role_arn}"
     }
@@ -83,7 +84,7 @@ resource "kubernetes_secret" "thanos_secret" {
 
   metadata {
     name = "thanos-s3-config-${each.key}"
-    namespace = "${kubernetes_namespace.ns_thanos}"
+    namespace = "${local.namespace_name}"
   }
 
   data = fileexists("${path.cwd}/../../../thanos-example/POC/s3-config/thanos-s3-config-${each.key}.yaml") ? {
