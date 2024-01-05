@@ -71,7 +71,7 @@ resource "kubernetes_service_account" "thanos_receive_sa" {
 
   metadata {
     name = "thanos-receive-${each.key}"
-    namespace = "${kubernetes_namespace.ns_thanos}"
+    namespace = "${local.namespace_name}"
     annotations = {
       "eks.amazonaws.com/role-arn" = "${module.thanos_sa_irsa["thanos-receive"].iam_role_arn}"
     }
