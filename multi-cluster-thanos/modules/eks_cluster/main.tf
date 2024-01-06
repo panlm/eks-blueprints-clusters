@@ -53,7 +53,7 @@ locals {
     #enable_aws_fsx_csi_driver                    = true
     # enable_aws_cloudwatch_metrics = true
     #enable_aws_privateca_issuer                  = true
-    enable_cluster_autoscaler                    = true
+    enable_cluster_autoscaler                    = false
     enable_external_dns                 = true
     # enable_external_secrets             = true
     enable_aws_load_balancer_controller = true
