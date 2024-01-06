@@ -217,7 +217,7 @@ module "eks" {
       name = "${local.name}-${local.node_group_name}"
       instance_types  = ["r5.large"]
 
-      min_size     = 2
+      min_size     = 3
       max_size     = 10
       desired_size = 4
       subnet_ids   = data.aws_subnets.private.ids
