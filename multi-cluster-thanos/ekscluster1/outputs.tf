@@ -8,6 +8,12 @@ output "configure_kubectl" {
   value       = module.eks_cluster.configure_kubectl
 }
 
+# output "thanos_namespace" {
+#   description = ""
+#   value       = module.eks_thanos.thanos_namespace
+# }
+
+
 # output "prometheus_secret" {
 #   description = "Configure kubectl: make sure you're logged in with the correct AWS profile and run the following command to update your kubeconfig"
 #   value       = module.eks_prometheus.prometheus_secret

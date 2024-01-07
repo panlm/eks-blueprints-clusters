@@ -88,6 +88,7 @@ resource "kubernetes_secret" "thanos_secret" {
   }
 
   data = fileexists("${path.cwd}/../../../thanos-example/POC/s3-config/thanos-s3-config-${each.key}.yaml") ? {
-    "thanos-s3-config-${each.key}" = "${file("${path.cwd}/../../../thanos-example/POC/s3-config/thanos-s3-config-${each.key}.yaml")}"
+    # "thanos-s3-config-${each.key}" = "${file("${path.cwd}/../../../thanos-example/POC/s3-config/thanos-s3-config-${each.key}.yaml")}"
+    "objstore.yml" = "${file("${path.cwd}/../../../thanos-example/POC/s3-config/thanos-s3-config-${each.key}.yaml")}"
   } : {}
 }
