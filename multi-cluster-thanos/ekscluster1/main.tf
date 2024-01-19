@@ -81,7 +81,7 @@ module "eks_thanos" {
 
 # helm install thanos
 resource "helm_release" "thanos_query" {
-  # count = 0
+  count = length(module.eks_thanos) == 0 ? 0 : 1
   name       = "thanoslab-query"
   repository = "oci://registry-1.docker.io/bitnamicharts"
   chart      = "thanos"
@@ -97,7 +97,7 @@ resource "helm_release" "thanos_query" {
 }
 
 resource "helm_release" "thanos_ekscluster" {
-  for_each = toset( ["ekscluster1", "ekscluster2", "ekscluster3"] )
+  for_each = length(module.eks_thanos) == 0 ? [] : toset( ["ekscluster1", "ekscluster2", "ekscluster3"] )
 
   name       = "thanoslab-${each.key}"
   repository = "oci://registry-1.docker.io/bitnamicharts"
