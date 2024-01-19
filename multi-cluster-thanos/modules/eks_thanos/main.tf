@@ -78,18 +78,6 @@ resource "kubernetes_service_account" "thanos_receive_sa" {
   }
 }
 
-resource "kubernetes_service_account" "thanoslab_sa" {
-  for_each = toset( ["ekscluster1", "ekscluster2", "ekscluster3"] )
-
-  metadata {
-    name = "thanoslab-${each.key}"
-    namespace = "${local.namespace_name}"
-    annotations = {
-      "eks.amazonaws.com/role-arn" = "${module.thanos_sa_irsa["thanos-store"].iam_role_arn}"
-    }
-  }
-}
-
 # create secret key for s3 config
 resource "kubernetes_secret" "thanos_secret" {
   for_each = toset( ["ekscluster1", "ekscluster2", "ekscluster3"] )
