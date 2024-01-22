@@ -86,6 +86,7 @@ resource "helm_release" "thanos_query" {
   repository = "oci://registry-1.docker.io/bitnamicharts"
   chart      = "thanos"
   namespace  = "${module.eks_thanos[0].thanos_namespace}"
+  wait       = false
 
   values = [
     file("${path.cwd}/../../../thanos-example/POC/thanos-values/thanoslab-query.yaml")
@@ -103,6 +104,7 @@ resource "helm_release" "thanos_ekscluster" {
   repository = "oci://registry-1.docker.io/bitnamicharts"
   chart      = "thanos"
   namespace  = "${module.eks_thanos[0].thanos_namespace}"
+  wait       = false
 
   values = [
     file("${path.cwd}/../../../thanos-example/POC/thanos-values/thanoslab-${each.key}.yaml"),
