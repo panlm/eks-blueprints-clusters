@@ -11,3 +11,4 @@ crash.log
 crash.*.log
 
 .terraform.lock.hcl
+tear-down-ebs.sh
