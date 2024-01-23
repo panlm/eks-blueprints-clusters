@@ -5,6 +5,17 @@ set -x
 # Get the directory of the currently executing script (shell1.sh)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# remove helm install 
+CLUSTER_NAME=$(terraform output -raw eks_cluster_id)
+KUBECTL_CONFIG=$(terraform output -raw configure_kubectl)
+eval ${KUBECTL_CONFIG}
+# remove thanos / prometheus 
+for ns in thanos monitoring ; do
+  helm list -n ${ns} --no-headers |awk '{print $1}' |while read i ; do
+    helm uninstall -n ${ns} $i
+  done
+done
+
 { "$SCRIPT_DIR/tear-down-applications.sh"; } || {
   echo "Error occurred while deleting application"
 
@@ -36,5 +47,14 @@ terraform destroy -target="module.eks_cluster.module.eks" -auto-approve || (echo
 
 terraform destroy -auto-approve || (echo "error deleting terraform" && exit -1)
 
+# remove ebs volumes used by thanos / prometheus
+echo "###"
+echo "### ensure EBS State is available and Tag:Name is related to the lab correctly"
+echo "### execute script $SCRIPT_DIR/tear-down-ebs.sh to delete volumes manually"
+echo "###"
+aws ec2 describe-volumes \
+  --filters "Name=tag:kubernetes.io/cluster/${CLUSTER_NAME},Values=owned" \
+  --query 'Volumes[*].[`aws ec2 delete-volume --volume-id`, VolumeId,`#`,State,Tags[?Key==`Name`].Value | [0]]' --output=text |tee $SCRIPT_DIR/tear-down-ebs.sh
+  
 echo "Tear Down OK"
 set +x
