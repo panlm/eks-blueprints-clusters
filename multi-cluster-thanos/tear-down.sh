@@ -56,6 +56,6 @@ echo "### execute script $SCRIPT_DIR/tear-down-ebs.sh to delete volumes manually
 echo "###"
 aws ec2 describe-volumes \
   --filters "Name=tag:kubernetes.io/cluster/${CLUSTER_NAME},Values=owned" \
-  --query 'Volumes[*].{col1_Command:`aws ec2 delete-volume --volume-id`, col2_VolumeID:VolumeId, col3_comment:`#`, col4_State:State, col5_Name:Tags[?Key==`Name`].Value | [0]}' --output=text |tee $SCRIPT_DIR/tear-down-ebs.sh
+  --query 'Volumes[*].{col1_Command:`aws ec2 delete-volume --volume-id`, col2_VolumeID:VolumeId, col3_comment:`#`, col4_State:State, col5_Name:Tags[?Key==`Name`].Value | [0]}' --output=text |tee $SCRIPT_DIR/tear-down-ebs-${CLUSTER_NAME}.sh
 
 echo "Tear Down OK"
