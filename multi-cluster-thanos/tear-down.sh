@@ -32,9 +32,9 @@ done
 
 # Then Tear down the cluster
 terraform destroy -target="module.eks_cluster.module.kubernetes_addons" -auto-approve || (echo "error deleting module.eks_cluster.module.kubernetes_addons" && exit -1)
-terraform destroy -target="module.eks_cluster.module.eks_blueprints_platform_teams" -auto-approve || (echo "error deleting module.eks_cluster.module.eks_blueprints_platform_teams" && exit -1)
-terraform destroy -target="module.eks_cluster.module.eks_blueprints_dev_teams" -auto-approve || (echo "error deleting module.eks_cluster.module.eks_blueprints_dev_teams" && exit -1)
-terraform destroy -target="module.eks_cluster.module.eks_blueprints_ecsdemo_teams" -auto-approve || (echo "error deleting module.eks_cluster.module.eks_blueprints_ecsdemo_teams" && exit -1)
+# terraform destroy -target="module.eks_cluster.module.eks_blueprints_platform_teams" -auto-approve || (echo "error deleting module.eks_cluster.module.eks_blueprints_platform_teams" && exit -1)
+# terraform destroy -target="module.eks_cluster.module.eks_blueprints_dev_teams" -auto-approve || (echo "error deleting module.eks_cluster.module.eks_blueprints_dev_teams" && exit -1)
+# terraform destroy -target="module.eks_cluster.module.eks_blueprints_ecsdemo_teams" -auto-approve || (echo "error deleting module.eks_cluster.module.eks_blueprints_ecsdemo_teams" && exit -1)
 
 terraform destroy -target="module.eks_cluster.module.gitops_bridge_bootstrap" -auto-approve || (echo "error deleting module.eks_cluster.module.gitops_bridge_bootstrap" && exit -1)
 terraform destroy -target="module.eks_cluster.module.gitops_bridge_metadata" -auto-approve || (echo "error deleting module.eks_cluster.module.gitops_bridge_metadata" && exit -1)
@@ -47,6 +47,8 @@ terraform destroy -target="module.eks_cluster.module.eks" -auto-approve || (echo
 
 terraform destroy -auto-approve || (echo "error deleting terraform" && exit -1)
 
+set +x
+
 # remove ebs volumes used by thanos / prometheus
 echo "###"
 echo "### ensure EBS State is available and Tag:Name is related to the lab correctly"
@@ -55,6 +57,5 @@ echo "###"
 aws ec2 describe-volumes \
   --filters "Name=tag:kubernetes.io/cluster/${CLUSTER_NAME},Values=owned" \
   --query 'Volumes[*].{col1_Command:`aws ec2 delete-volume --volume-id`, col2_VolumeID:VolumeId, col3_comment:`#`, col4_State:State, col5_Name:Tags[?Key==`Name`].Value | [0]}' --output=text |tee $SCRIPT_DIR/tear-down-ebs.sh
-          
+
 echo "Tear Down OK"
-set +x
