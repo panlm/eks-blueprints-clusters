@@ -2,8 +2,6 @@
 locals {
   cluster_name = var.cluster_name
   cluster_oidc = var.cluster_oidc
-  cluster_endpoint = var.cluster_endpoint
-  cluster_ca_data = var.cluster_ca_data
   service_account = "prometheus-sa"
   namespace_name = "monitoring"
 }
@@ -33,7 +31,6 @@ resource "helm_release" "prometheus" {
   depends_on = [
     kubernetes_service_account.prometheus_sa,
     kubernetes_secret.prometheus_secret,
-    var.blueprints_addons
   ]
 }
 

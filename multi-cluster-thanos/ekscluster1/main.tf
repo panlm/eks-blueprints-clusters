@@ -66,9 +66,9 @@ module "eks_prometheus" {
 
   cluster_name = module.eks_cluster.eks_cluster_id
   cluster_oidc = module.eks_cluster.eks_cluster_oidc_arn
-  cluster_endpoint = module.eks_cluster.eks_cluster_endpoint
-  cluster_ca_data = module.eks_cluster.cluster_certificate_authority_data
-  blueprints_addons = module.eks_cluster.eks_blueprints_addons
+  depends_on = [
+    module.eks_cluster.eks_blueprints_addons,
+  ]  
 }
 
 module "eks_thanos" {
@@ -77,6 +77,9 @@ module "eks_thanos" {
 
   cluster_name = module.eks_cluster.eks_cluster_id
   cluster_oidc = module.eks_cluster.eks_cluster_oidc_arn
+  depends_on = [
+    module.eks_cluster.eks_blueprints_addons,
+  ]
 }
 
 # helm install thanos
@@ -92,7 +95,6 @@ resource "helm_release" "thanos_query" {
     file("${path.cwd}/../../../thanos-example/POC/thanos-values/thanoslab-query.yaml")
   ]
   depends_on = [
-    module.eks_cluster.eks_blueprints_addons,
     module.eks_thanos.thanos_s3_config,
     # kubernetes_secret.prometheus_secret,
   ]
@@ -111,7 +113,6 @@ resource "helm_release" "thanos_ekscluster" {
     file("${path.cwd}/../../../thanos-example/POC/thanos-values/thanoslab-${each.key}.yaml"),
   ]
   depends_on = [
-    module.eks_cluster.eks_blueprints_addons,
     module.eks_thanos.thanos_s3_config,
     module.eks_thanos.thanos_receive_sa,
     module.eks_thanos.thanos_store_sa
