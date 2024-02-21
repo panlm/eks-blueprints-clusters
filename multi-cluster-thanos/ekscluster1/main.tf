@@ -92,6 +92,7 @@ resource "helm_release" "thanos_query" {
     file("${path.cwd}/../../../thanos-example/POC/thanos-values/thanoslab-query.yaml")
   ]
   depends_on = [
+    module.eks_cluster.eks_blueprints_addons,
     module.eks_thanos.thanos_s3_config,
     # kubernetes_secret.prometheus_secret,
   ]
@@ -110,6 +111,7 @@ resource "helm_release" "thanos_ekscluster" {
     file("${path.cwd}/../../../thanos-example/POC/thanos-values/thanoslab-${each.key}.yaml"),
   ]
   depends_on = [
+    module.eks_cluster.eks_blueprints_addons,
     module.eks_thanos.thanos_s3_config,
     module.eks_thanos.thanos_receive_sa,
     module.eks_thanos.thanos_store_sa
