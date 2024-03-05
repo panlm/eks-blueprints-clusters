@@ -213,20 +213,12 @@ module "eks" {
   #we uses only 1 security group to allow connection with Fargate, MNG, and Karpenter nodes
   create_node_security_group = false
   eks_managed_node_groups = {
-    initial-amd64 = {
-      name = "${local.name}-${local.node_group_name}-amd64"
+    initial-win = {
+      name = "${local.name}-${local.node_group_name}-win"
       instance_types  = ["r5.large"]
-      min_size     = 3
-      max_size     = 10
-      desired_size = 3
-      subnet_ids   = data.aws_subnets.private.ids
-    },    
-    initial-arm64 = {
-      name = "${local.name}-${local.node_group_name}-arm64"
-      instance_types  = ["r6g.large"]
-      ami_type       = "AL2_ARM_64"
+      ami_type       = "WINDOWS_FULL_2019_x86_64"
       min_size     = 2
-      max_size     = 10
+      max_size     = 5
       desired_size = 2
       subnet_ids   = data.aws_subnets.private.ids
     },
