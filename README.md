@@ -14,7 +14,8 @@
 curl -sL -o /tmp/func-create-hosted-zone.sh https://panlm.github.io/CLI/functions/func-create-hosted-zone.sh
 source /tmp/func-create-hosted-zone.sh
 
-PARENT_DOMAIN_NAME=eks1224.aws.panlm.xyz
+DATE=$(TZ=EAT-8 date +%m%d)
+PARENT_DOMAIN_NAME=eks${DATE}.aws.panlm.xyz
 create-hosted-zone -n ${PARENT_DOMAIN_NAME}
 ```
 
