@@ -91,9 +91,9 @@ resource "helm_release" "thanos_query" {
   namespace  = "${module.eks_thanos[0].thanos_namespace}"
   wait       = false
 
-  values = [
+  values = fileexists("${path.cwd}/../../../thanos-example/POC/thanos-values/thanoslab-query.yaml") ? [
     file("${path.cwd}/../../../thanos-example/POC/thanos-values/thanoslab-query.yaml")
-  ]
+  ] : []
   depends_on = [
     module.eks_thanos.thanos_s3_config,
     # kubernetes_secret.prometheus_secret,
